@@ -1,0 +1,5 @@
+# pack-refs with: peeled fully-peeled sorted 
+f4390ce6b4fd3ed274c7a6f6469346e1f6de32ef refs/heads/cloudflare/workers-autoconfig
+e60228c2a36ba84ee7209ae8f78dae17fa0f128f refs/heads/master
+f4390ce6b4fd3ed274c7a6f6469346e1f6de32ef refs/pull/1/head
+011e49190a302bc542fcd31d50c9549be34b958a refs/pull/1/merge
