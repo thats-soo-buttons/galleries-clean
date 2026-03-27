@@ -1,11 +1,12 @@
 
-import fs from 'fs';
-import path from 'path';
+
 
 export default async function handler(req, res) {
+
   if (req.method !== 'POST' && req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
 
   // Support folderId from body (POST) or query (GET)
   const folderId = req.method === 'POST' ? req.body.folderId : req.query.folderId;
@@ -13,16 +14,21 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing folderId' });
   }
 
-  // For Wearing of the Green 2026, serve from local JSON and R2 (now using 'wearingofthegreen2026')
+  // For Wearing of the Green 2026, serve from public JSON and R2 (now using 'wearingofthegreen2026')
   if (folderId === 'wearingofthegreen2026') {
     try {
-      const jsonPath = path.join(process.cwd(), 'public', 'data', 'wearingofthegreen2026-images.json');
-      const filenames = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+      // Fetch the JSON file via HTTP for serverless compatibility
+      const jsonUrl = `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}/data/wearingofthegreen2026-images.json`;
+      const response = await fetch(jsonUrl);
+      if (!response.ok) throw new Error(`Failed to fetch JSON: ${response.status}`);
+      const filenames = await response.json();
       const baseUrl = 'https://pub-c89ef5607c4f4bb4b07455ddc8021fd0.r2.dev/';
-      const images = filenames.map(name => ({
+      // Remove duplicates just in case
+      const uniqueFilenames = Array.from(new Set(filenames));
+      const images = uniqueFilenames.map(name => ({
         name,
         url: baseUrl + encodeURIComponent(name),
-        thumbnailUrl: baseUrl + encodeURIComponent(name) // You can use the same or generate thumbnails if needed
+        thumbnailUrl: baseUrl + encodeURIComponent(name)
       }));
       return res.status(200).json({ images });
     } catch (error) {
